@@ -1,0 +1,50 @@
+# Ideathon Prototype Submission
+
+## Working prototype
+
+https://texmed-insight-journal-412542191970.asia-south1.run.app/
+
+## Public repository
+
+Add the GitHub repository URL after publishing this directory publicly.
+
+## Demo social post draft
+
+I built **Texmed Insight Journal**, a private AI reflection and decision-support
+workspace running on Google Cloud Run.
+
+Users authenticate securely with Google through Firebase Authentication, explore
+ideas with the Gemini API across multiple turns, and return to a private history
+stored in user-isolated Cloud Firestore paths. The Gemini API key never reaches
+the browser—it is restricted and delivered to the Cloud Run runtime through
+Google Cloud Secret Manager.
+
+I also added three focused modes—Clarity, Decision, and Wellbeing—plus backend
+Firebase token verification, deny-by-default Firestore rules, safe text rendering,
+strict prompt validation, and a dedicated least-privilege service account.
+
+Live demo: https://texmed-insight-journal-412542191970.asia-south1.run.app/
+
+#AccelerateAIwithCloudRun #GeminiAPI #Firebase #Firestore #GoogleCloud
+
+## Brief description for the submission form
+
+Texmed Insight Journal is a secure, personalized AI reflection and decision-support
+application deployed on Google Cloud Run. Users sign in with Google using Firebase
+Authentication, choose a Clarity, Decision, or Wellbeing mode, and hold multi-turn
+conversations with Gemini 3.6 Flash. Every completed exchange is persisted under
+an owner-isolated `users/{uid}/interactions` path in Cloud Firestore, enabling a
+private history that is available across sessions. The Cloud Run backend verifies
+Firebase ID tokens on every private API request and derives the Firestore path only
+from the verified UID. The restricted Gemini API key is stored in Google Cloud
+Secret Manager and injected only into the dedicated least-privilege runtime service
+account. Deny-by-default Firestore rules, strict input limits, safe text rendering,
+and reliable error/retry states further harden the production deployment.
+
+## Services to select
+
+- User authentication via Firebase
+- Multi-turn interaction with the Gemini API
+- User-isolated Firestore document storage
+- Secure API key retrieval via Google Cloud Secret Manager
+

@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A private, Firebase-authenticated Gemini reflection journal on Cloud Run.">
+  <title>Texmed Insight Journal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="Texmed Insight Journal home">
+        <span class="brand-mark">T</span>
+        <span>Texmed <strong>Insight Journal</strong></span>
+      </a>
+      <div id="account" class="account hidden">
+        <span id="user-name"></span>
+        <button id="sign-out" class="button ghost">Sign out</button>
+      </div>
+    </header>
+
+    <main>
+      <section id="landing" class="hero">
+        <div class="hero-copy">
+          <span class="eyebrow">PRIVATE AI REFLECTIONS</span>
+          <h1>Turn a crowded mind into a clear next step.</h1>
+          <p>Think through decisions, capture reflections, and return to your private history—supported by Gemini and protected by Firebase.</p>
+          <button id="sign-in" class="button primary">
+            <span class="google-g">G</span> Continue with Google
+          </button>
+          <p class="trust-line">Your entries are isolated to your authenticated account.</p>
+        </div>
+        <div class="hero-card" aria-hidden="true">
+          <div class="orb"></div>
+          <p class="quote">“Clarity is not having every answer. It is knowing the next honest question.”</p>
+          <div class="secure-row"><span>●</span> Firebase Auth · Firestore · Gemini</div>
+        </div>
+      </section>
+
+      <section id="dashboard" class="dashboard hidden">
+        <aside class="history-panel">
+          <div>
+            <span class="eyebrow">YOUR PRIVATE SPACE</span>
+            <h2>Recent insights</h2>
+          </div>
+          <button id="new-reflection" class="button secondary">＋ New reflection</button>
+          <div id="history-list" class="history-list"></div>
+        </aside>
+
+        <section class="workspace">
+          <div class="workspace-heading">
+            <div>
+              <span class="eyebrow">GEMINI-POWERED</span>
+              <h1>What would you like to untangle?</h1>
+            </div>
+            <div class="mode-picker" role="group" aria-label="Reflection mode">
+              <button class="mode active" data-mode="clarity">Clarity</button>
+              <button class="mode" data-mode="decision">Decision</button>
+              <button class="mode" data-mode="wellbeing">Wellbeing</button>
+            </div>
+          </div>
+
+          <div id="conversation" class="conversation" aria-live="polite">
+            <div class="welcome-card">
+              <span class="spark">✦</span>
+              <h3>A private place to think out loud</h3>
+              <p>Share a situation, a decision, or a reflection. Gemini will help structure your thinking and save the exchange to your private history.</p>
+            </div>
+          </div>
+
+          <form id="chat-form" class="composer">
+            <label for="message" class="sr-only">Your reflection</label>
+            <textarea id="message" maxlength="4000" rows="3" placeholder="Describe what is on your mind…" required></textarea>
+            <div class="composer-footer">
+              <span id="status" role="status">Private to your account</span>
+              <button id="send" class="button primary" type="submit">Reflect with Gemini →</button>
+            </div>
+          </form>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast" class="toast hidden" role="alert"></div>
+  <script type="module" src="/static/app.js"></script>
+</body>
+</html>
+
