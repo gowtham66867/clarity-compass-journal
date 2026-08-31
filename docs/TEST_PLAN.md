@@ -56,12 +56,17 @@ rows in fixtures, screenshots, logs, or evaluation artifacts.
 | CHAT-03 | Quota fallback | Developer API raises 429 | Submit prompt | Vertex called once; response saved with fallback provenance | Automated |
 | CHAT-04 | Non-quota failure | Developer API raises non-429 error | Submit prompt | HTTP 502; Vertex not called; nothing persisted | Automated |
 | CHAT-05 | Empty model output | Gemini returns empty text | Submit prompt | HTTP 502; incomplete exchange not persisted | Automated |
+| CHAT-06 | Model timeout | Gemini call exceeds configured timeout | Submit prompt | HTTP 502; request terminates; nothing persisted | Automated |
+| ABUSE-01 | Per-user limit | Limit set to one request/window | Submit twice as the same user | Second request is HTTP 429 with `Retry-After`; first remains saved | Automated |
+| ABUSE-02 | Tenant-independent buckets | Limit reached by user A | Submit as user B | B remains allowed | Rate-limiter unit test |
 | DATA-01 | History ordering | Two records with different timestamps | Load history | Newest record first; timestamps serialized as ISO 8601 | Automated |
 | DATA-02 | Firestore rules | Rules deployed | Use A credentials to read A and B paths | A allowed only on A path; all unrelated collections denied | Emulator/manual live |
 | UI-01 | Safe rendering | Model returns `<img onerror=...>` as text | Display conversation and history | Markup displays literally; no script or event executes | Static automated + browser manual |
 | UI-02 | Responsive layout | Browser widths 1440, 900, 390 | Load landing and authenticated workspace | No clipped controls or horizontal overflow; composer remains usable | Manual browser |
 | UI-03 | Keyboard/accessibility | Desktop browser | Navigate sign-in, modes, composer, history and sign-out using keyboard | Visible focus, logical order, labelled controls and status announcements | Manual browser |
 | SECRET-01 | Secret exposure | Built container and public page | Search repository, page source and network responses | No Gemini key/private key; Firebase public config only | Automated static + manual live |
+| HTTP-01 | Security headers | App running | Request public page and API | CSP, frame denial, nosniff, HSTS, referrer and permissions policy present; API is `no-store` | Automated |
+| HTTP-02 | Request correlation | App running | Make two requests | Each receives a distinct `X-Request-ID`; logs contain no prompt text | Automated header check |
 | DEPLOY-01 | Public shell/private APIs | Neutral Cloud Run service deployed | Open `/`, then call `/api/history` without token | Shell is public; private endpoint returns 401 | Manual live |
 | DEPLOY-02 | Runtime identity | Cloud access | Inspect service configuration | Dedicated service account, Secret Manager binding, Firestore/Firebase/Vertex least privilege | Manual cloud |
 | DEPLOY-03 | Challenge metadata | Cloud access | Inspect Cloud Run labels | `dev-tutorial=cloud-run-ai-challenge` present | Manual cloud |
@@ -88,5 +93,6 @@ rows in fixtures, screenshots, logs, or evaluation artifacts.
   verify them with Firebase Emulator Suite or two live test accounts.
 - Calibration outputs prove the scoring code behaves as designed; they do not
   represent live Gemini quality.
-- The suite does not yet measure load, cold-start latency, rate limiting,
-  accessibility with an automated browser, or disaster recovery.
+- The suite does not yet measure load, cold-start latency, distributed
+  rate-limiter behavior, authenticated accessibility across multiple browsers,
+  or disaster recovery.

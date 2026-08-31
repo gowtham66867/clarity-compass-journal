@@ -1,6 +1,6 @@
 # Clarity Compass evaluation report
 
-**Overall rating: 8.0 / 10**  
+**Overall rating: 8.7 / 10**
 **Assessment basis:** source review, deterministic API integration tests,
 failure injection, security/release contracts, coverage, build dependency
 resolution, and evaluation-harness calibration.
@@ -9,19 +9,19 @@ resolution, and evaluation-harness calibration.
 
 | Dimension | Weight | Score | Evidence and deduction |
 |---|---:|---:|---|
-| Security and privacy | 2.0 | 1.6 | Firebase token verification, owner-derived paths, deny-by-default rules, safe text rendering and Secret Manager. Deduction: no automated Firebase Emulator rule test, rate limiting or security-header gate. |
-| Functional correctness | 1.5 | 1.35 | Auth, history ordering, tenant isolation, multi-turn context, primary Gemini path and quota fallback are covered. Failed/empty model calls do not persist partial exchanges. |
+| Security and privacy | 2.0 | 1.85 | Firebase token verification, owner-derived paths, deny-by-default rules, safe text rendering, Secret Manager, CSP/security headers, per-user abuse protection and email-free persistence. Deduction: no automated Firebase Emulator rule test or distributed rate-limit store. |
+| Functional correctness | 1.5 | 1.45 | Auth, history ordering, tenant isolation, multi-turn context, primary Gemini path, bounded timeouts and quota fallback are covered. Failed/empty/timed-out model calls do not persist partial exchanges. |
 | Cloud/challenge architecture | 1.5 | 1.35 | Firebase Auth, Firestore, Cloud Run, Gemini and Secret Manager are implemented with a dedicated runtime identity. Deduction: neutral rebrand is not yet deployed because cloud reauthentication is pending. |
 | AI quality and safety | 1.5 | 1.1 | Six explicit eval cases cover clarity, decisions, non-clinical wellbeing, prompt injection, urgent safety and uncertainty. Deduction: the 100/100 calibration score validates the evaluator only; a captured live Gemini run is still required. |
-| UX and accessibility | 1.0 | 0.8 | Responsive, clear authenticated workflow, labelled controls, status region and safe rendering. Deduction: no automated browser accessibility or cross-browser suite. |
-| Test and release discipline | 1.5 | 1.4 | 18 automated tests pass with 91% statement coverage; one-command release gate and detailed test matrix added. Harness caught an invalid FastAPI version constraint. |
-| Operations and submission readiness | 1.0 | 0.4 | Public repository and submission copy exist. Deduction: neutral Cloud Run URL, social post, live two-account isolation evidence, observability and load tests remain open. |
-| **Total** | **10.0** | **8.0** | Strong production-oriented prototype; not yet a fully evidenced public release. |
+| UX and accessibility | 1.0 | 0.9 | Responsive, labelled and semantically structured landing experience passed rendered desktop/mobile DOM and browser-error checks. Deduction: authenticated and cross-browser accessibility remain manual. |
+| Test and release discipline | 1.5 | 1.5 | 22 automated tests pass with 93% statement coverage; one-command gate, detailed matrix, browser evidence, CI and Docker build gate are included. |
+| Operations and submission readiness | 1.0 | 0.55 | Public repository, submission copy, request correlation and CI exist. Deduction: neutral Cloud Run URL, social post, live two-account isolation, distributed observability and load tests remain open. |
+| **Total** | **10.0** | **8.7** | Strong, hardened prototype; external release evidence prevents an honest 9.9 today. |
 
 ## Executed results
 
-- `18/18` API, evaluator and release-contract tests passed.
-- `91%` statement coverage across the application and deterministic evaluator.
+- `22/22` API, evaluator and release-contract tests passed.
+- `93%` statement coverage across the application and deterministic evaluator.
 - `6/6` quality/safety calibration cases passed all declared rubric checks.
 - Repository brand scan, obvious-secret scan, Firestore rule contract, frontend
   text-rendering contract and challenge-technology checks passed.
@@ -30,6 +30,10 @@ resolution, and evaluation-harness calibration.
   because the local Docker daemon was not running.
 - The harness detected and corrected the unavailable FastAPI `>=0.133`
   constraint to the compatible `0.128.x` release line.
+- Desktop and mobile rendered-page checks passed without overflow, duplicate IDs,
+  unlabeled inputs, missing image alternatives, or browser runtime errors.
+- GitHub Actions now runs the deterministic gate and production image build on
+  every push and pull request.
 
 ## Interpretation of the evaluation score
 
@@ -58,8 +62,8 @@ documents afterward.
 2. Run the six live Gemini eval cases and achieve at least 85/100 with every
    safety-critical case passing.
 3. Add Firebase Emulator tests for Firestore rules and revoked-token behavior.
-4. Add rate limiting, security headers, structured request IDs, latency/error
-   metrics and alerts.
+4. Move the local abuse limiter to a distributed managed store and add
+   latency/error metrics and alerts.
 5. Add automated Playwright accessibility, mobile, failure-state and two-account
    journeys.
 6. Publish the required social demo and verify every submission link anonymously.

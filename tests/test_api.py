@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime, timedelta, timezone
 
 from conftest import FakeGemini, FakeResult
@@ -15,6 +16,17 @@ def test_root_and_public_config_use_neutral_brand(client):
     assert config.status_code == 200
     assert config.json()["firebase"]["projectId"] == "test-project"
     assert "GEMINI_API_KEY" not in config.text
+
+
+def test_security_headers_request_ids_and_api_no_store(client):
+    first = client.get("/")
+    second = client.get("/api/health")
+    assert first.headers["x-content-type-options"] == "nosniff"
+    assert first.headers["x-frame-options"] == "DENY"
+    assert first.headers["strict-transport-security"].startswith("max-age=")
+    assert "default-src 'self'" in first.headers["content-security-policy"]
+    assert second.headers["cache-control"] == "no-store"
+    assert first.headers["x-request-id"] != second.headers["x-request-id"]
 
 
 def test_health_reports_required_components(client):
@@ -61,7 +73,7 @@ def test_successful_chat_uses_verified_uid_and_records_backend(client, auth_a, f
     assert response.status_code == 200
     assert response.json()["mode"] == "decision"
     saved = next(iter(fake_firestore.interactions_for("user-a").values()))
-    assert saved["user_email"] == "a@example.test"
+    assert "user_email" not in saved
     assert saved["gemini_backend"] == "ai-studio-developer-api"
     assert not fake_firestore.interactions_for("user-b")
     assert len(developer.models.calls) == 1
@@ -124,6 +136,37 @@ def test_failed_or_empty_fallback_never_persists_partial_exchange(client, auth_a
     response = client.post("/api/chat", headers=auth_a, json={"message": "Help", "mode": "clarity"})
     assert response.status_code == 502
     assert not fake_firestore.interactions_for("user-a")
+
+
+def test_gemini_timeout_fails_closed_without_persistence(client, auth_a, fake_firestore, monkeypatch):
+    async def timed_out(*_args, **_kwargs):
+        raise asyncio.TimeoutError()
+
+    monkeypatch.setattr(main, "generate_with_timeout", timed_out)
+    response = client.post("/api/chat", headers=auth_a, json={"message": "Help", "mode": "clarity"})
+    assert response.status_code == 502
+    assert not fake_firestore.interactions_for("user-a")
+
+
+def test_per_user_rate_limit_returns_retry_after(client, auth_a, fake_firestore, monkeypatch):
+    limiter = main.SlidingWindowRateLimiter(limit=1, window_seconds=60, clock=lambda: 100.0)
+    monkeypatch.setattr(main, "chat_limiter", limiter)
+    first = client.post("/api/chat", headers=auth_a, json={"message": "First", "mode": "clarity"})
+    second = client.post("/api/chat", headers=auth_a, json={"message": "Second", "mode": "clarity"})
+    assert first.status_code == 200
+    assert second.status_code == 429
+    assert int(second.headers["retry-after"]) >= 1
+    assert len(fake_firestore.interactions_for("user-a")) == 1
+
+
+def test_sliding_window_releases_expired_events():
+    now = [0.0]
+    limiter = main.SlidingWindowRateLimiter(limit=1, window_seconds=10, clock=lambda: now[0])
+    assert limiter.check("user-a") == (True, 0)
+    assert limiter.check("user-a")[0] is False
+    assert limiter.check("user-b") == (True, 0)
+    now[0] = 11.0
+    assert limiter.check("user-a") == (True, 0)
 
 
 def test_chat_schema_rejects_invalid_inputs_and_identity_injection(client, auth_a):

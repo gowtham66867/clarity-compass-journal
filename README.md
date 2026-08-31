@@ -46,6 +46,11 @@ Firebase ID token.
 - Restricted Gemini API key delivered through Google Cloud Secret Manager.
 - Quota-resilient Gemini continuity: the secret-backed AI Studio Developer API is
   primary, with a same-project Vertex AI fallback only on quota exhaustion.
+- Per-user sliding-window abuse protection and bounded Gemini request timeouts.
+- Request IDs, privacy-safe structured request logs, API no-store behavior, and
+  hardened browser security headers.
+- Data minimization: Firestore stores the reflection, response, mode, timestamp,
+  and Gemini backend provenance but not the user's email address.
 
 ## Local development
 
@@ -200,6 +205,10 @@ contracts, response-evaluator calibration, compilation, coverage, and diff
 whitespace. See [`docs/TEST_PLAN.md`](docs/TEST_PLAN.md) for detailed manual and
 automated cases and [`docs/EVALUATION_REPORT.md`](docs/EVALUATION_REPORT.md) for
 the evidence-based rating and remaining release gaps.
+
+Every push and pull request runs the same gate in GitHub Actions and also builds
+the production Docker image. Local rendered-page evidence is recorded in
+[`docs/BROWSER_QA.md`](docs/BROWSER_QA.md).
 
 ## Campaign
 

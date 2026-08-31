@@ -1,11 +1,16 @@
+import asyncio
 import os
 import logging
+import time
+import uuid
+from collections import defaultdict, deque
 from datetime import datetime, timezone
 from pathlib import Path
+from threading import Lock
 from typing import Annotated, Literal
 
 import firebase_admin
-from fastapi import Depends, FastAPI, Header, HTTPException, status
+from fastapi import Depends, FastAPI, Header, HTTPException, Request, status
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from firebase_admin import auth
@@ -17,6 +22,9 @@ from pydantic import BaseModel, ConfigDict, Field
 
 PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT", "billing-dashboard-505116")
 GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
+GEMINI_TIMEOUT_SECONDS = float(os.getenv("GEMINI_TIMEOUT_SECONDS", "45"))
+CHAT_RATE_LIMIT = int(os.getenv("CHAT_RATE_LIMIT", "12"))
+CHAT_RATE_WINDOW_SECONDS = int(os.getenv("CHAT_RATE_WINDOW_SECONDS", "60"))
 STATIC_DIR = Path(__file__).parent / "static"
 logger = logging.getLogger("uvicorn.error")
 
@@ -50,6 +58,31 @@ class AuthenticatedUser(BaseModel):
     uid: str
     email: str | None = None
     name: str | None = None
+
+
+class SlidingWindowRateLimiter:
+    def __init__(self, limit: int, window_seconds: int, clock=time.monotonic):
+        self.limit = max(1, limit)
+        self.window_seconds = max(1, window_seconds)
+        self.clock = clock
+        self.events = defaultdict(deque)
+        self.lock = Lock()
+
+    def check(self, key: str) -> tuple[bool, int]:
+        now = self.clock()
+        cutoff = now - self.window_seconds
+        with self.lock:
+            bucket = self.events[key]
+            while bucket and bucket[0] <= cutoff:
+                bucket.popleft()
+            if len(bucket) >= self.limit:
+                retry_after = max(1, int(self.window_seconds - (now - bucket[0])) + 1)
+                return False, retry_after
+            bucket.append(now)
+            return True, 0
+
+
+chat_limiter = SlidingWindowRateLimiter(CHAT_RATE_LIMIT, CHAT_RATE_WINDOW_SECONDS)
 
 
 def get_db() -> firestore.Client:
@@ -130,37 +163,9 @@ def load_recent_context(db: firestore.Client, uid: str) -> list[types.Content]:
     return contents
 
 
-app = FastAPI(title="Clarity Compass", version="1.0.0")
-app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
-
-
-@app.get("/api/config")
-async def public_config():
-    if not FIREBASE_CONFIG["apiKey"] or not FIREBASE_CONFIG["appId"]:
-        raise HTTPException(status_code=503, detail="Firebase web configuration is incomplete.")
-    return {"firebase": FIREBASE_CONFIG}
-
-
-@app.get("/api/health")
-async def health():
-    return {
-        "status": "ok",
-        "firebase_auth": True,
-        "firestore": True,
-        "gemini_secret_configured": bool(os.getenv("GEMINI_API_KEY")),
-    }
-
-
-@app.get("/api/me")
-async def me(user: Annotated[AuthenticatedUser, Depends(require_user)]):
-    return user
-
-
-@app.get("/api/history")
-async def history(user: Annotated[AuthenticatedUser, Depends(require_user)]):
-    db = get_db()
+def load_history_records(db: firestore.Client, uid: str) -> list[dict]:
     docs = (
-        interaction_collection(db, user.uid)
+        interaction_collection(db, uid)
         .order_by("created_at", direction=firestore.Query.DESCENDING)
         .limit(30)
         .stream()
@@ -180,6 +185,82 @@ async def history(user: Annotated[AuthenticatedUser, Depends(require_user)]):
     ]
 
 
+async def generate_with_timeout(client: genai.Client, context, generation_config):
+    return await asyncio.wait_for(
+        asyncio.to_thread(
+            client.models.generate_content,
+            model=GEMINI_MODEL,
+            contents=context,
+            config=generation_config,
+        ),
+        timeout=GEMINI_TIMEOUT_SECONDS,
+    )
+
+
+app = FastAPI(title="Clarity Compass", version="1.0.0")
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+
+@app.middleware("http")
+async def security_and_request_context(request: Request, call_next):
+    request_id = str(uuid.uuid4())
+    started = time.monotonic()
+    response = await call_next(request)
+    response.headers["X-Request-ID"] = request_id
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; "
+        "script-src 'self' https://www.gstatic.com; "
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+        "font-src https://fonts.gstatic.com; img-src 'self' data:; "
+        "connect-src 'self' https://*.googleapis.com https://*.firebaseio.com "
+        "wss://*.firebaseio.com; frame-src https://accounts.google.com"
+    )
+    if request.url.path.startswith("/api/"):
+        response.headers["Cache-Control"] = "no-store"
+    logger.info(
+        "request_complete request_id=%s method=%s path=%s status=%s duration_ms=%s",
+        request_id,
+        request.method,
+        request.url.path,
+        response.status_code,
+        round((time.monotonic() - started) * 1000, 1),
+    )
+    return response
+
+
+@app.get("/api/config")
+async def public_config():
+    if not FIREBASE_CONFIG["apiKey"] or not FIREBASE_CONFIG["appId"]:
+        raise HTTPException(status_code=503, detail="Firebase web configuration is incomplete.")
+    return {"firebase": FIREBASE_CONFIG}
+
+
+@app.get("/api/health")
+async def health():
+    return {
+        "status": "ok",
+        "firebase_auth": bool(firebase_admin._apps and PROJECT_ID),
+        "firestore": bool(PROJECT_ID),
+        "gemini_secret_configured": bool(os.getenv("GEMINI_API_KEY")),
+    }
+
+
+@app.get("/api/me")
+async def me(user: Annotated[AuthenticatedUser, Depends(require_user)]):
+    return user
+
+
+@app.get("/api/history")
+async def history(user: Annotated[AuthenticatedUser, Depends(require_user)]):
+    db = get_db()
+    return await asyncio.to_thread(load_history_records, db, user.uid)
+
+
 @app.post("/api/chat", response_model=ChatResponse)
 async def chat(
     payload: ChatRequest,
@@ -189,8 +270,16 @@ async def chat(
     if not message:
         raise HTTPException(status_code=400, detail="Message cannot be blank.")
 
+    allowed, retry_after = chat_limiter.check(user.uid)
+    if not allowed:
+        raise HTTPException(
+            status_code=429,
+            detail="Too many reflections. Please wait before retrying.",
+            headers={"Retry-After": str(retry_after)},
+        )
+
     db = get_db()
-    context = load_recent_context(db, user.uid)
+    context = await asyncio.to_thread(load_recent_context, db, user.uid)
     context.append(types.Content(role="user", parts=[types.Part(text=message)]))
     generation_config = types.GenerateContentConfig(
         system_instruction=f"{SYSTEM_INSTRUCTION}\n\nCurrent mode: {MODE_INSTRUCTIONS[payload.mode]}",
@@ -200,11 +289,7 @@ async def chat(
     gemini_backend = "ai-studio-developer-api"
     try:
         developer_client = get_gemini()
-        result = developer_client.models.generate_content(
-            model=GEMINI_MODEL,
-            contents=context,
-            config=generation_config,
-        )
+        result = await generate_with_timeout(developer_client, context, generation_config)
     except Exception as primary_exc:
         primary_error = str(primary_exc)
         if "429" not in primary_error and "RESOURCE_EXHAUSTED" not in primary_error:
@@ -219,11 +304,7 @@ async def chat(
             ) from primary_exc
         try:
             vertex_client = get_vertex_gemini()
-            result = vertex_client.models.generate_content(
-                model=GEMINI_MODEL,
-                contents=context,
-                config=generation_config,
-            )
+            result = await generate_with_timeout(vertex_client, context, generation_config)
             gemini_backend = "vertex-ai-quota-fallback"
         except Exception as fallback_exc:
             logger.error(
@@ -246,15 +327,15 @@ async def chat(
 
     now = datetime.now(timezone.utc)
     document = interaction_collection(db, user.uid).document()
-    document.set(
+    await asyncio.to_thread(
+        document.set,
         {
             "prompt": message,
             "response": response_text,
             "mode": payload.mode,
             "created_at": now,
-            "user_email": user.email,
             "gemini_backend": gemini_backend,
-        }
+        },
     )
     return ChatResponse(
         id=document.id,
