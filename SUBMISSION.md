@@ -6,7 +6,7 @@ https://texmed-insight-journal-412542191970.asia-south1.run.app/
 
 ## Public repository
 
-Add the GitHub repository URL after publishing this directory publicly.
+https://github.com/gowtham66867/texmed-insight-journal
 
 ## Demo social post draft
 
@@ -47,4 +47,3 @@ and reliable error/retry states further harden the production deployment.
 - Multi-turn interaction with the Gemini API
 - User-isolated Firestore document storage
 - Secure API key retrieval via Google Cloud Secret Manager
-
