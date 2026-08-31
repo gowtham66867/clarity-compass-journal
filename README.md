@@ -183,6 +183,24 @@ endpoints remain protected by backend Firebase ID-token verification.
 8. Confirm no Gemini API key appears in the page source, repository, or network
    responses.
 
+## Test and evaluation harness
+
+Install the development dependencies and run the complete deterministic gate:
+
+```bash
+python3.11 -m venv .venv
+.venv/bin/python -m pip install -r requirements-dev.txt
+PYTHON_BIN=.venv/bin/python scripts/test_all.sh
+scripts/verify_container.sh
+```
+
+The gate covers authenticated API behavior, tenant isolation, multi-turn context,
+Gemini quota fallback, failure atomicity, input validation, release security
+contracts, response-evaluator calibration, compilation, coverage, and diff
+whitespace. See [`docs/TEST_PLAN.md`](docs/TEST_PLAN.md) for detailed manual and
+automated cases and [`docs/EVALUATION_REPORT.md`](docs/EVALUATION_REPORT.md) for
+the evidence-based rating and remaining release gaps.
+
 ## Campaign
 
 Built for the Cloud Run Build & Deploy Social Challenge. Demo posts should include

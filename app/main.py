@@ -12,7 +12,7 @@ from firebase_admin import auth
 from google import genai
 from google.cloud import firestore
 from google.genai import types
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT", "billing-dashboard-505116")
@@ -33,6 +33,8 @@ if not firebase_admin._apps:
 
 
 class ChatRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     message: str = Field(min_length=1, max_length=4000)
     mode: Literal["clarity", "decision", "wellbeing"] = "clarity"
 
