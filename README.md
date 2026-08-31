@@ -1,6 +1,6 @@
-# Texmed Insight Journal
+# Clarity Compass
 
-Texmed Insight Journal is a production-oriented, authenticated AI reflection and
+Clarity Compass is a production-oriented, authenticated AI reflection and
 decision journal. Users sign in with Google through Firebase Authentication,
 hold multi-turn conversations with Gemini, and revisit a private history stored
 under an owner-bound Cloud Firestore path. The application runs as one container
@@ -116,20 +116,20 @@ Create a dedicated service account and grant only the permissions needed by the
 runtime:
 
 ```bash
-gcloud iam service-accounts create texmed-insight-sa \
-  --display-name="Texmed Insight Journal Cloud Run" \
+gcloud iam service-accounts create clarity-compass-sa \
+  --display-name="Clarity Compass Cloud Run" \
   --project="YOUR_PROJECT_ID"
 
 gcloud projects add-iam-policy-binding "YOUR_PROJECT_ID" \
-  --member="serviceAccount:texmed-insight-sa@YOUR_PROJECT_ID.iam.gserviceaccount.com" \
+  --member="serviceAccount:clarity-compass-sa@YOUR_PROJECT_ID.iam.gserviceaccount.com" \
   --role="roles/datastore.user"
 
 gcloud projects add-iam-policy-binding "YOUR_PROJECT_ID" \
-  --member="serviceAccount:texmed-insight-sa@YOUR_PROJECT_ID.iam.gserviceaccount.com" \
+  --member="serviceAccount:clarity-compass-sa@YOUR_PROJECT_ID.iam.gserviceaccount.com" \
   --role="roles/firebaseauth.viewer"
 
 gcloud projects add-iam-policy-binding "YOUR_PROJECT_ID" \
-  --member="serviceAccount:texmed-insight-sa@YOUR_PROJECT_ID.iam.gserviceaccount.com" \
+  --member="serviceAccount:clarity-compass-sa@YOUR_PROJECT_ID.iam.gserviceaccount.com" \
   --role="roles/aiplatform.user"
 ```
 
@@ -147,7 +147,7 @@ printf '%s' 'YOUR_RESTRICTED_GEMINI_KEY' | \
     --project="YOUR_PROJECT_ID"
 
 gcloud secrets add-iam-policy-binding GEMINI_API_KEY \
-  --member="serviceAccount:texmed-insight-sa@YOUR_PROJECT_ID.iam.gserviceaccount.com" \
+  --member="serviceAccount:clarity-compass-sa@YOUR_PROJECT_ID.iam.gserviceaccount.com" \
   --role="roles/secretmanager.secretAccessor" \
   --project="YOUR_PROJECT_ID"
 ```
@@ -155,11 +155,11 @@ gcloud secrets add-iam-policy-binding GEMINI_API_KEY \
 ## Cloud Run deployment
 
 ```bash
-gcloud run deploy texmed-insight-journal \
+gcloud run deploy clarity-compass-journal \
   --source=. \
   --region=asia-south1 \
   --allow-unauthenticated \
-  --service-account="texmed-insight-sa@YOUR_PROJECT_ID.iam.gserviceaccount.com" \
+  --service-account="clarity-compass-sa@YOUR_PROJECT_ID.iam.gserviceaccount.com" \
   --set-secrets="GEMINI_API_KEY=GEMINI_API_KEY:latest" \
   --set-env-vars="GOOGLE_CLOUD_PROJECT=YOUR_PROJECT_ID,GEMINI_MODEL=gemini-3.6-flash,FIREBASE_API_KEY=YOUR_PUBLIC_WEB_KEY,FIREBASE_APP_ID=YOUR_FIREBASE_APP_ID,FIREBASE_MESSAGING_SENDER_ID=YOUR_PROJECT_NUMBER" \
   --labels="dev-tutorial=cloud-run-ai-challenge" \

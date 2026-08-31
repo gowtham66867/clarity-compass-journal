@@ -2,15 +2,15 @@
 
 ## Working prototype
 
-https://texmed-insight-journal-412542191970.asia-south1.run.app/
+https://clarity-compass-journal-412542191970.asia-south1.run.app/
 
 ## Public repository
 
-https://github.com/gowtham66867/texmed-insight-journal
+https://github.com/gowtham66867/clarity-compass-journal
 
 ## Demo social post draft
 
-I built **Texmed Insight Journal**, a private AI reflection and decision-support
+I built **Clarity Compass**, a private AI reflection and decision-support
 workspace running on Google Cloud Run.
 
 Users authenticate securely with Google through Firebase Authentication, explore
@@ -23,13 +23,13 @@ I also added three focused modes—Clarity, Decision, and Wellbeing—plus backe
 Firebase token verification, deny-by-default Firestore rules, safe text rendering,
 strict prompt validation, and a dedicated least-privilege service account.
 
-Live demo: https://texmed-insight-journal-412542191970.asia-south1.run.app/
+Live demo: https://clarity-compass-journal-412542191970.asia-south1.run.app/
 
 #AccelerateAIwithCloudRun #GeminiAPI #Firebase #Firestore #GoogleCloud
 
 ## Brief description for the submission form
 
-Texmed Insight Journal is a secure, personalized AI reflection and decision-support
+Clarity Compass is a secure, personalized AI reflection and decision-support
 application deployed on Google Cloud Run. Users sign in with Google using Firebase
 Authentication, choose a Clarity, Decision, or Wellbeing mode, and hold multi-turn
 conversations with Gemini 3.6 Flash. Every completed exchange is persisted under
