@@ -52,6 +52,7 @@ class ChatResponse(BaseModel):
     response: str
     created_at: str
     mode: str
+    backend: str
 
 
 class AuthenticatedUser(BaseModel):
@@ -359,6 +360,7 @@ async def chat(
         response=response_text,
         created_at=now.isoformat(),
         mode=payload.mode,
+        backend=gemini_backend,
     )
 
 

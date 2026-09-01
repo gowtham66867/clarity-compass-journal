@@ -20,8 +20,12 @@ def main():
     args = parser.parse_args()
 
     report = evaluate_suite(load_json(ROOT / "cases.json"), load_json(args.responses))
-    report["response_source"] = str(Path(args.responses).resolve())
-    report["calibration_only"] = Path(args.responses).resolve() == (ROOT / "calibration_outputs.json").resolve()
+    response_path = Path(args.responses)
+    try:
+        report["response_source"] = response_path.resolve().relative_to(ROOT.parent).as_posix()
+    except ValueError:
+        report["response_source"] = response_path.name
+    report["calibration_only"] = response_path.resolve() == (ROOT / "calibration_outputs.json").resolve()
     rendered = json.dumps(report, indent=2)
     print(rendered)
     if args.output:

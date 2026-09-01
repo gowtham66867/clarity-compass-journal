@@ -88,6 +88,7 @@ def test_successful_chat_uses_verified_uid_and_records_backend(client, auth_a, f
 
     assert response.status_code == 200
     assert response.json()["mode"] == "decision"
+    assert response.json()["backend"] == "ai-studio-developer-api"
     saved = next(iter(fake_firestore.interactions_for("user-a").values()))
     assert "user_email" not in saved
     assert saved["gemini_backend"] == "ai-studio-developer-api"
@@ -114,6 +115,7 @@ def test_multiturn_context_uses_only_recent_private_history(client, auth_a, fake
 
     response = client.post("/api/chat", headers=auth_a, json={"message": "current", "mode": "clarity"})
     assert response.status_code == 200
+    assert response.json()["backend"] == "ai-studio-developer-api"
     contents = gemini_clients[0].models.calls[0]["contents"]
     serialized = " ".join(part.text for content in contents for part in content.parts)
     assert "prompt-0" not in serialized and "prompt-1" not in serialized
@@ -129,6 +131,7 @@ def test_quota_exhaustion_falls_back_to_vertex_and_records_it(client, auth_a, fa
 
     response = client.post("/api/chat", headers=auth_a, json={"message": "Help", "mode": "clarity"})
     assert response.status_code == 200
+    assert response.json()["backend"] == "vertex-ai-quota-fallback"
     saved = next(iter(fake_firestore.interactions_for("user-a").values()))
     assert saved["gemini_backend"] == "vertex-ai-quota-fallback"
     assert len(vertex.models.calls) == 1
