@@ -12,3 +12,4 @@ PYTHON_BIN="${PYTHON_BIN:-python3}"
 git diff --check
 
 echo "PASS: API, security, isolation, failure-path, release-contract, and eval calibration gates"
+echo "INFO: run 'npm run test:rules' for the Firestore Emulator authorization gate"

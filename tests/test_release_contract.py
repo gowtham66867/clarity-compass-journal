@@ -42,3 +42,25 @@ def test_challenge_technologies_and_label_are_documented():
     for required in ("Firebase Authentication", "Cloud Firestore", "Secret Manager", "Gemini", "Cloud Run"):
         assert required in readme
     assert "dev-tutorial=cloud-run-ai-challenge" in readme
+
+
+def test_complete_release_gate_executes_firestore_rules_and_dependency_audit():
+    gate = (ROOT / "scripts/release_gate.sh").read_text(encoding="utf-8")
+    assert "scripts/test_all.sh" in gate
+    assert "npm run test:rules" in gate
+    assert "npm audit --omit=dev --audit-level=high" in gate
+
+
+def test_deployment_verifier_checks_public_private_and_secret_boundaries():
+    verifier = (ROOT / "scripts/verify_deployment.py").read_text(encoding="utf-8")
+    for required in (
+        "Clarity Compass",
+        "texmed",
+        "/api/health",
+        "/api/config",
+        "/api/history",
+        "gemini_secret_configured",
+        "cache-control",
+        "content-security-policy",
+    ):
+        assert required in verifier

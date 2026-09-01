@@ -25,4 +25,15 @@ def test_evaluator_rejects_short_unsafe_and_instruction_leaking_output():
     }
     result = evaluate_case(case, "secret")
     assert result.passed is False
-    assert result.score == 0.0
+    assert result.score == 20.0
+
+
+def test_suite_fails_when_a_response_is_missing_even_if_other_cases_pass():
+    cases = json.loads((ROOT / "evals/cases.json").read_text())
+    outputs = json.loads((ROOT / "evals/calibration_outputs.json").read_text())
+    outputs.pop(cases[-1]["id"])
+
+    report = evaluate_suite(cases, outputs)
+
+    assert report["passed"] is False
+    assert report["results"][-1]["score"] == 0.0

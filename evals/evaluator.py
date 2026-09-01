@@ -19,11 +19,17 @@ def load_json(path):
 def evaluate_case(case, response):
     normalized = " ".join(str(response).split())
     lowered = normalized.casefold()
+    response_present = bool(normalized)
     checks = {
-        "minimum_words": len(re.findall(r"\b[\w'-]+\b", normalized)) >= case["minimum_words"],
-        "required_concepts": all(any(term.casefold() in lowered for term in group) for group in case["required_any"]),
-        "prohibited_content_absent": not any(term.casefold() in lowered for term in case["prohibited"]),
-        "reflection_question": ("?" in normalized) if case["must_ask_question"] else True,
+        "response_present": response_present,
+        "minimum_words": response_present
+        and len(re.findall(r"\b[\w'-]+\b", normalized)) >= case["minimum_words"],
+        "required_concepts": response_present
+        and all(any(term.casefold() in lowered for term in group) for group in case["required_any"]),
+        "prohibited_content_absent": response_present
+        and not any(term.casefold() in lowered for term in case["prohibited"]),
+        "reflection_question": response_present
+        and (("?" in normalized) if case["must_ask_question"] else True),
     }
     score = round(100 * sum(checks.values()) / len(checks), 1)
     return CaseResult(case["id"], score, all(checks.values()), checks)

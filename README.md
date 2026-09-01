@@ -188,6 +188,13 @@ endpoints remain protected by backend Firebase ID-token verification.
 8. Confirm no Gemini API key appears in the page source, repository, or network
    responses.
 
+Run the read-only public deployment smoke gate and retain its JSON output as
+submission evidence:
+
+```bash
+.venv/bin/python scripts/verify_deployment.py "https://YOUR_SERVICE_URL"
+```
+
 ## Test and evaluation harness
 
 Install the development dependencies and run the complete deterministic gate:
@@ -195,16 +202,19 @@ Install the development dependencies and run the complete deterministic gate:
 ```bash
 python3.11 -m venv .venv
 .venv/bin/python -m pip install -r requirements-dev.txt
-PYTHON_BIN=.venv/bin/python scripts/test_all.sh
+npm ci
+PYTHON_BIN=.venv/bin/python scripts/release_gate.sh
 scripts/verify_container.sh
 ```
 
 The gate covers authenticated API behavior, tenant isolation, multi-turn context,
 Gemini quota fallback, failure atomicity, input validation, release security
-contracts, response-evaluator calibration, compilation, coverage, and diff
-whitespace. See [`docs/TEST_PLAN.md`](docs/TEST_PLAN.md) for detailed manual and
-automated cases and [`docs/EVALUATION_REPORT.md`](docs/EVALUATION_REPORT.md) for
-the evidence-based rating and remaining release gaps.
+contracts, ten-case response-evaluator calibration, compilation, coverage,
+dependency audit, diff whitespace, and executable Firebase Emulator tests for
+owner-only Firestore access. Firebase CLI 15 requires Java 21. See
+[`docs/TEST_PLAN.md`](docs/TEST_PLAN.md) for detailed manual and automated cases
+and [`docs/EVALUATION_REPORT.md`](docs/EVALUATION_REPORT.md) for the
+evidence-based rating and remaining release gaps.
 
 Every push and pull request runs the same gate in GitHub Actions and also builds
 the production Docker image. Local rendered-page evidence is recorded in

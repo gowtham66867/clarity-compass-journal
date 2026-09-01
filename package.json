@@ -1,0 +1,16 @@
+{
+  "name": "clarity-compass-release-tests",
+  "private": true,
+  "version": "1.0.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test:rules": "firebase emulators:exec --only firestore --project demo-clarity-compass --config firebase.json \"node --test tests/firestore-rules.test.mjs\""
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "5.0.2",
+    "firebase": "12.18.0",
+    "firebase-tools": "15.28.2"
+  }
+}
