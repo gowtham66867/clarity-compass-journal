@@ -51,6 +51,8 @@ Firebase ID token.
   hardened browser security headers.
 - Data minimization: Firestore stores the reflection, response, mode, timestamp,
   and Gemini backend provenance but not the user's email address.
+- Account owners can permanently clear their saved reflection history from the
+  workspace; the backend derives the deletion path from the verified UID.
 
 ## Local development
 

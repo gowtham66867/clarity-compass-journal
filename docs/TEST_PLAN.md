@@ -61,6 +61,7 @@ rows in fixtures, screenshots, logs, or evaluation artifacts.
 | ABUSE-01 | Per-user limit | Limit set to one request/window | Submit twice as the same user | Second request is HTTP 429 with `Retry-After`; first remains saved | Automated |
 | ABUSE-02 | Tenant-independent buckets | Limit reached by user A | Submit as user B | B remains allowed | Rate-limiter unit test |
 | DATA-01 | History ordering | Two records with different timestamps | Load history | Newest record first; timestamps serialized as ISO 8601 | Automated |
+| DATA-02 | Owner deletion | Seed A and B histories | Clear history as A | All A records deleted; every B record preserved | Automated |
 | RULE-01 | Owner CRUD | Firestore Emulator running | Create, read, update and delete A's document as A | Every operation succeeds | Automated emulator |
 | RULE-02 | Owner query | Seed A and B data without rules | Query A's interaction collection as A | Only A's document is returned | Automated emulator |
 | RULE-03 | Cross-user denial | Seed B data | Read, list, create, update and delete B paths as A | Every operation is denied | Automated emulator |

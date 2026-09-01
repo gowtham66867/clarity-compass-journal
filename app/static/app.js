@@ -21,6 +21,7 @@ const elements = {
   conversation: document.querySelector("#conversation"),
   history: document.querySelector("#history-list"),
   newReflection: document.querySelector("#new-reflection"),
+  clearHistory: document.querySelector("#clear-history"),
   toast: document.querySelector("#toast"),
 };
 
@@ -116,6 +117,22 @@ document.querySelectorAll(".mode").forEach((button) => {
 elements.newReflection.addEventListener("click", () => {
   elements.conversation.innerHTML = `<div class="welcome-card"><span class="spark">✦</span><h3>A fresh page</h3><p>Start wherever you are. Your next exchange will be saved privately.</p></div>`;
   elements.message.focus();
+});
+
+elements.clearHistory.addEventListener("click", async () => {
+  if (!window.confirm("Permanently delete every saved reflection in this account?")) return;
+  elements.clearHistory.disabled = true;
+  try {
+    const result = await api("/api/history", { method: "DELETE" });
+    renderHistory([]);
+    elements.conversation.replaceChildren();
+    elements.status.textContent = "Private history cleared";
+    showToast(`${result.deleted} saved reflection${result.deleted === 1 ? "" : "s"} deleted.`);
+  } catch (error) {
+    showToast(error.message);
+  } finally {
+    elements.clearHistory.disabled = false;
+  }
 });
 
 elements.form.addEventListener("submit", async (event) => {

@@ -44,6 +44,22 @@ def test_private_routes_require_a_well_formed_valid_token(client):
     assert client.get("/api/history").status_code == 401
     assert client.get("/api/history", headers={"Authorization": "Basic x"}).status_code == 401
     assert client.get("/api/history", headers={"Authorization": "Bearer bad"}).status_code == 401
+    assert client.delete("/api/history").status_code == 401
+
+
+def test_clear_history_deletes_only_the_verified_users_documents(
+    client, auth_a, fake_firestore
+):
+    fake_firestore.seed("user-a", "a-1", prompt="A")
+    fake_firestore.seed("user-a", "a-2", prompt="A2")
+    fake_firestore.seed("user-b", "b-1", prompt="B")
+
+    response = client.delete("/api/history", headers=auth_a)
+
+    assert response.status_code == 200
+    assert response.json() == {"deleted": 2}
+    assert fake_firestore.interactions_for("user-a") == {}
+    assert set(fake_firestore.interactions_for("user-b")) == {"b-1"}
 
 
 def test_me_returns_only_verified_identity_claims(client, auth_a):

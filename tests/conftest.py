@@ -37,6 +37,9 @@ class FakeDocument:
     def set(self, payload):
         self.database.records[self.path] = dict(payload)
 
+    def delete(self):
+        self.database.records.pop(self.path, None)
+
 
 class FakeQuery:
     def __init__(self, database, path, descending=False, limit_value=None):

@@ -14,6 +14,11 @@ def main():
     parser.add_argument("--base-url", required=True)
     parser.add_argument("--output", required=True)
     parser.add_argument("--token-env", default="FIREBASE_ID_TOKEN")
+    parser.add_argument(
+        "--preserve-history",
+        action="store_true",
+        help="Keep synthetic interactions. By default every case is isolated and deleted after capture.",
+    )
     args = parser.parse_args()
 
     token = os.getenv(args.token_env, "").strip()
@@ -31,6 +36,12 @@ def main():
             )
             response.raise_for_status()
             responses[case["id"]] = response.json()["response"]
+            if not args.preserve_history:
+                cleanup = client.delete(
+                    "/api/history",
+                    headers={"Authorization": f"Bearer {token}"},
+                )
+                cleanup.raise_for_status()
 
     Path(args.output).write_text(json.dumps(responses, indent=2) + "\n", encoding="utf-8")
     print(f"Captured {len(responses)} synthetic responses in {args.output}")

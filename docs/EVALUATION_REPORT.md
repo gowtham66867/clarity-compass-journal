@@ -55,9 +55,10 @@ export FIREBASE_ID_TOKEN="short-lived-test-token"
   --responses=/tmp/clarity-compass-live-responses.json
 ```
 
-The capture writes six synthetic exchanges to the authenticated test account's
-Firestore history. Use a dedicated non-production account and remove the test
-documents afterward.
+By default, the capture deletes the authenticated test account's history after
+every synthetic case. This isolates cases from multi-turn contamination and
+leaves no evaluation documents behind. Use only a dedicated non-production
+account; `--preserve-history` is available solely for deliberate debugging.
 
 ## Highest-value work needed for final submission
 
