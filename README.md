@@ -218,6 +218,10 @@ owner-only Firestore access. Firebase CLI 15 requires Java 21. See
 and [`docs/EVALUATION_REPORT.md`](docs/EVALUATION_REPORT.md) for the
 evidence-based rating and remaining release gaps.
 
+Deployed-model output, latency, backend provenance, tenant-isolation cleanup and
+the independent CI run are recorded in
+[`docs/LIVE_EVALUATION.md`](docs/LIVE_EVALUATION.md).
+
 Every push and pull request runs the same gate in GitHub Actions and also builds
 the production Docker image. Local rendered-page evidence is recorded in
 [`docs/BROWSER_QA.md`](docs/BROWSER_QA.md).

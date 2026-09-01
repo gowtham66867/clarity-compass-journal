@@ -28,6 +28,10 @@ tests, five executable Firebase Emulator authorization tests, ten synthetic AI
 quality and safety evaluations, 93% application/evaluator coverage, dependency
 auditing, and a production Docker build in GitHub Actions.
 
+The deployed release passed a 10-case isolated live AI evaluation at 100/100,
+a two-account Firestore isolation test, and an anonymous public deployment smoke
+gate. Synthetic test histories and accounts were removed after verification.
+
 Live demo: https://clarity-compass-journal-412542191970.asia-south1.run.app/
 
 #AccelerateAIwithCloudRun #GeminiAPI #Firebase #Firestore #GoogleCloud
