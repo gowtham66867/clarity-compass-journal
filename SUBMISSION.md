@@ -33,6 +33,8 @@ a two-account Firestore isolation test, and an anonymous public deployment smoke
 gate. Synthetic test histories and accounts were removed after verification.
 
 Live demo: https://clarity-compass-journal-412542191970.asia-south1.run.app/
+Technical walkthrough: https://github.com/gowtham66867/clarity-compass-journal/blob/main/docs/DEMO_WALKTHROUGH.md
+Public code: https://github.com/gowtham66867/clarity-compass-journal
 
 #AccelerateAIwithCloudRun #GeminiAPI #Firebase #Firestore #GoogleCloud
 

@@ -6,6 +6,14 @@ hold multi-turn conversations with Gemini, and revisit a private history stored
 under an owner-bound Cloud Firestore path. The application runs as one container
 on Google Cloud Run.
 
+[Open the live Cloud Run app](https://clarity-compass-journal-412542191970.asia-south1.run.app/)
+· [Read the demo walkthrough](docs/DEMO_WALKTHROUGH.md)
+· [Review live evaluation evidence](docs/LIVE_EVALUATION.md)
+
+[![release-gate](https://github.com/gowtham66867/clarity-compass-journal/actions/workflows/ci.yml/badge.svg)](https://github.com/gowtham66867/clarity-compass-journal/actions/workflows/ci.yml)
+
+![Clarity Compass deployed on Cloud Run](docs/screenshots/clarity-compass-cloud-run-desktop.png)
+
 ## Architecture
 
 ```text
